@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="stylesheet.css">
+    <link rel="icon" href="/documents/images/favicon.png">
+    <title>Theseus en de Minotaurus</title>
+    <!-- Link naar script staat van onder de html om event listener problemen te voorkomen!-->
+</head>
+<body>
+
+<header>
+    <h1 id="titel">Theseus en de Minotaurus</h1>
+    <div id="knoppen">
+        <button id="random" class="knop">random</button>
+        <button id="next" class="knop"> Volgende level</button>
+        <button id="prev" class="knop"> Vorige level</button>
+        <button id="restart" class="knop"> Herstel</button>
+    </div>
+</header>
+<div class="sidenav">
+    <div id="labels">
+        <div>
+            <p id="level"> LEVEL </p>
+            <p id="aantalStappen">AANTAL STAPPEN</p>
+            <p id="highscore"> BESTE SCORE</p>
+        </div>
+    </div>
+    <div>
+        <h2 id="besturing"> Besturingen </h2>
+        <table>
+            <tr>
+                <td><img src="/documents/images/arrow.png" id="arrows" alt="Afbeelding van de pijltjes"></td>
+                <td> Gebruik de pijltjestoetsen om Theseus te verplaatsen</td>
+            </tr>
+        </table>
+        <table>
+            <tbody>
+            <tr>
+                <td class="key">Spatie:</td>
+                <td>Laat Theseus wachten</td>
+            </tr>
+            <tr>
+                <td class="key">R:</td>
+                <td>Reset het huidige level</td>
+            </tr>
+            <tr>
+                <td class="key">N:</td>
+                <td>Ga naar het volgende level</td>
+            </tr>
+            <tr>
+                <td class="key">P:</td>
+                <td>Ga naar het vorige level</td>
+            </tr>
+            <tr>
+                <td class="key">Theseus:</td>
+                <td><img src="/documents/images/Thes2.png" class="tableAfbeelding" alt="Theseus"></td>
+            </tr>
+            <tr>
+                <td class="key">Minotaurus:</td>
+                <td><img src="/documents/images/Mino.png" class="tableAfbeelding" alt="Minotaurus"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="main">
+    <div id="gridContainer">
+        <!-- Hier komt de grid -->
+    </div>
+    <p id="message"></p>
+</div>
+
+<script src="myscripts.js"></script>
+</body>
+</html>
+
