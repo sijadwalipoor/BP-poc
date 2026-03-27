@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Adres {
+  @@map("adressen")
+
+  id              Int             @id @default(autoincrement()) @db.UnsignedInt
+  land            String          @db.VarChar(255)
+  straat          String          @db.VarChar(255)
+  nr              Int             @db.UnsignedTinyInt
+  stadsnaam       String          @db.VarChar(255)
+  postcode        String          @db.VarChar(255)
+  
+  gebruiker       Gebruiker[]     @relation(map: "fk_gebruiker_adres")
+  klant           Klant[]         @relation(map: "fk_klant_adres")
+  leverancier     Leverancier[]   @relation(map: "fk_leverancier_adres")
+}
+
+model Gebruiker {
+  @@map("gebruikers")
+
+  id                Int                 @id @default(autoincrement()) @db.UnsignedInt
+  btw_nummer        String              @unique(map: "idx_btw_nummer_unique") @db.VarChar(15)
+  bedrijfsnaam      String              @unique(map: "idx_place_name_unique") @db.VarChar(255)
+  voornaam          String?             @db.VarChar(255)
+  achternaam        String?             @db.VarChar(255)
+  telefoonnummer    String              @db.VarChar(255)
+  email             String              @unique(map: "idx_email_unique") @db.VarChar(255)
+  wachtwoord_hash   String              @db.VarChar(255)
+  rollen            Json
+  
+  adres_id          Int                 @db.UnsignedInt
+  adres             Adres               @relation(fields: [adres_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_gebruiker_adres")
+  
+  leveranciers        Leverancier[]     @relation(map: "fk_gebruiker_leverancier")
+  klanten             Klant[]           @relation(map: "fk_bedrijk_klant")
+  verkoopfacturen     Verkoopfactuur[]  @relation(map: "fk_gebruiker_verkoop")
+  aankoopfacturen     Aankoopfactuur[]  @relation(map: "fk_gebruiker_aankoopfactuur")
+}
+
+model Aankoopfactuur {
+  @@map("aankoopfacturen")
+
+  id              Int           @id @default(autoincrement()) @db.UnsignedInt
+  factuurnummer   String        @db.VarChar(255)
+  factuurdatum    DateTime      @db.DateTime(0)
+  vervaldatum     DateTime      @db.DateTime(0)
+  omschrijving    String        @db.VarChar(255)
+  status          Boolean       @db.TinyInt
+
+  leverancier_id  Int           @db.UnsignedInt
+  leverancier     Leverancier   @relation(fields: [leverancier_id], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "fk_leverancier_aankoopfactuur")
+
+  gebruiker_id    Int           @db.UnsignedInt
+  gebruiker       Gebruiker     @relation(fields: [gebruiker_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_gebruiker_aankoopfactuur")
+  
+  aankopen        Aankoop[]     @relation(map: "fk_aankoopfactuur_aankoop")
+}
+
+model Verkoopfactuur {
+  @@map("verkoopfacturen")
+
+  id            Int         @id @default(autoincrement()) @db.UnsignedInt
+  factuurnummer String      @db.VarChar(255)
+  factuurdatum  DateTime    @db.DateTime(0)
+  vervaldatum   DateTime    @db.DateTime(0)
+  omschrijving  String      @db.VarChar(255)
+  status        Boolean     @db.TinyInt
+  klant_id      Int         @db.UnsignedInt
+  gebruiker_id  Int         @db.UnsignedInt
+
+  klant         Klant       @relation(fields: [klant_id], references: [id],onDelete: NoAction,onUpdate: Cascade, map: "fk_klant_verkoopfactuur")
+  gebruiker     Gebruiker   @relation(fields: [gebruiker_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_gebruiker_aankoop")
+  
+  verkopen      Verkoop[]   @relation(map: "fk_verkoopfactuur_verkoop")
+  @@unique([klant_id, factuurnummer])  // Unieke combinatie van klant_id en factuurnummer
+}
+
+model Klant {
+  @@map("klanten")
+
+  id                Int           @id @default(autoincrement()) @db.UnsignedInt
+  btw_nummer        String        @db.VarChar(20)
+  bedrijfsnaam      String        @db.VarChar(255)
+  voornaam          String?       @db.VarChar(255)
+  achternaam        String?       @db.VarChar(255)
+  telefoonnummer    String?       @db.VarChar(255)
+  email             String?       @db.VarChar(255)
+
+  adres_id          Int           @db.UnsignedInt
+  adres             Adres         @relation(fields: [adres_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_klant_adres")
+
+  gebruiker_id      Int           @db.UnsignedInt
+  gebruiker         Gebruiker     @relation(fields: [gebruiker_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_bedrijk_klant")
+
+  verkopenfacturen  Verkoopfactuur[] @relation(map: "fk_verkoopfactuur_klant")
+
+  @@unique([btw_nummer, gebruiker_id], map: "idx_btw_nummer_gebruiker_unique") // combinatie van klant en gebruiker moet uniek zijn!
+}
+
+model Leverancier {
+  @@map("leveranciers")
+
+  id                Int               @id @default(autoincrement()) @db.UnsignedInt
+  btw_nummer        String            @db.VarChar(15)
+  bedrijfsnaam      String            @db.VarChar(255)
+  telefoonnummer    String?           @db.VarChar(255)
+  email             String?           @db.VarChar(255)
+
+  adres_id          Int               @db.UnsignedInt
+  adres             Adres             @relation(fields: [adres_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_leverancier_adres")
+
+  gebruiker_id      Int               @db.UnsignedInt
+  gebruiker         Gebruiker         @relation(fields: [gebruiker_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_gebruiker_leverancier")
+
+  aankoopfacturen   Aankoopfactuur[]  @relation(map: "fk_leverancier_aankoopfactuur")
+
+  @@unique([btw_nummer, gebruiker_id], map: "idx_btw_nummer_gebruiker_leverancier_unique")
+}
+
+
+model AankoopCategorie {
+  @@map("aankoopcategorieen")
+  
+  id                Int             @id @default(autoincrement()) @db.UnsignedInt
+  hoofd_categorie   String          @db.VarChar(255)
+  sub_categorie     String          @db.VarChar(255)
+
+  aankopen          Aankoop[]       @relation(map: "fk_aankoop_categorie_aankoop")
+}
+
+model Aankoop {
+  @@map("aankopen")
+
+  id                        Int           @id @default(autoincrement()) @db.UnsignedInt
+  factuur_id                Int           @db.UnsignedInt
+  bedrag                    Decimal       @db.Decimal(10,2)
+  btw_percentage            Decimal       @db.Decimal(5,2)
+  prive_percentage          Decimal       @db.Decimal(5,2)
+  aankoop_categorie_id      Int           @db.UnsignedInt
+  aantal_jaren_afschrijven  Int?          @db.UnsignedInt
+
+  aankoopfactuur        Aankoopfactuur    @relation(fields: [factuur_id], references: [id],onDelete: Cascade,onUpdate: Cascade, map: "fk_aankoopfactuur_aankoop")
+  aankoop_categorie     AankoopCategorie  @relation(fields: [aankoop_categorie_id], references: [id],onDelete: NoAction, onUpdate: Cascade, map: "fk_aankoop_categorie_aankoop")
+}
+
+model BtwRegime {
+  @@map("btw_regimes")
+
+  id              Int         @id @default(autoincrement()) @db.UnsignedInt
+  omschrijving    String      @db.VarChar(255)
+  btw_percentage  Decimal     @db.Decimal(5,2)
+
+  verkoop         Verkoop[]   @relation(map: "fk_btw_regime_verkoop")
+}
+
+model Verkoop {
+  @@map("verkopen")
+
+  id                  Int             @id @default(autoincrement()) @db.UnsignedInt
+  factuur_id          Int             @db.UnsignedInt
+  omschrijving        String          @db.VarChar(255)
+  bedrag              Decimal         @db.Decimal(10,2)
+  btw_percentage_id   Int             @db.UnsignedInt
+
+  verkoopfactuur      Verkoopfactuur  @relation(fields: [factuur_id], references: [id],onDelete: Cascade,onUpdate: Cascade, map: "fk_verkoopfactuur_verkoop")
+  btw_regime          BtwRegime       @relation(fields: [btw_percentage_id], references: [id],onDelete: NoAction,onUpdate: Cascade, map: "fk_btw_regime_verkoop")  
+}
